@@ -2,32 +2,34 @@ name: CloudSurf Runner
 
 on:
   schedule:
-    - cron: '*/1 * * * *'
-    # - cron: '*/10 2-8 * * *'    # Every 10min, 2am–8am UTC (best Colab window)
-    # - cron: '*/10 14-16 * * *'  # Every 10min, 2pm–4pm UTC (midday window)
-  workflow_dispatch:              # Manual trigger anytime
+    - cron: '*/1 * * * *'        # Every minute
+    # - cron: '*/10 2-8 * * *'    # Every 10min between 2am–8am UTC
+    # - cron: '*/10 14-16 * * *'  # Every 10min between 2pm–4pm UTC
+  
+  workflow_dispatch:              # Allow manual trigger
 
 jobs:
   launch:
     runs-on: ubuntu-latest
     
-    # Add these permissions
+    # Required permissions for Codespaces
     permissions:
       contents: read
-      codespaces: write     # ← This is the important one
-    
+      codespaces: write
+
     steps:
       - name: Start CloudSurf Codespace
         run: |
           CODESPACE="${{ vars.CLOUDSURF_CODESPACE_NAME }}"
           
           if [ -z "$CODESPACE" ]; then
-            echo "❌ No codespace name set!"
+            echo "❌ No codespace name set! Please add CLOUDSURF_CODESPACE_NAME in Repository Variables."
             exit 1
           fi
 
           echo "🔍 Checking codespace: $CODESPACE"
           
+          # Get current state
           STATE=$(gh codespace list --repo ${{ github.repository }} \
             --json name,state \
             -q '.[] | select(.name == "'$CODESPACE'") | .state' || echo "")
@@ -35,11 +37,11 @@ jobs:
           echo "Current state: ${STATE:-Not found}"
           
           if [ "$STATE" = "Available" ]; then
-            echo "✅ Codespace is already running."
+            echo "✅ Codespace is already running. Nothing to do."
           else
-            echo "🚀 Starting codespace..."
+            echo "🚀 Starting codespace (this can take 30-90 seconds)..."
             gh codespace code --codespace "$CODESPACE" --web > /dev/null 2>&1 || true
-            echo "✅ Command sent — codespace should be starting."
+            echo "✅ Start command sent successfully!"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
