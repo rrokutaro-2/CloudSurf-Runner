@@ -22,7 +22,7 @@ jobs:
   
             echo "🔍 Checking codespace: $CODESPACE"
             
-            STATE=$(gh codespace list --repo ${{ github.repository }} --json name,state -q --arg cs "$CODESPACE" '.[] | select(.name==$cs) | .state')
+            STATE=$(gh codespace list --repo ${{ github.repository }} --json name,state -q | jq -r --arg cs "$CODESPACE" '.[] | select(.name==$cs) | .state')
             echo "Current state: ${STATE:-Not found}"
             
             if [ "$STATE" = "Available" ]; then
