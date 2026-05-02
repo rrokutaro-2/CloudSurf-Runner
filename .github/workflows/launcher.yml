@@ -2,7 +2,7 @@ name: CloudSurf Runner
 
 on:
   schedule:
-    - cron: '*/1 * * * *'
+    - cron: '*/1 * * * *'     # Every minute
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,8 @@ jobs:
 
           echo "🔍 Checking codespace: $CODESPACE"
           
-          STATE=$(gh codespace list --repo ${{ github.repository }} \
+          # No --repo filter because codespace is in another repo
+          STATE=$(gh codespace list \
             --json name,state \
             -q '.[] | select(.name == "'$CODESPACE'") | .state' || echo "")
 
