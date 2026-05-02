@@ -2,7 +2,7 @@ name: CloudSurf Runner
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/1 * * * *'
     # - cron: '*/10 2-8 * * *'    # Every 10min, 2am–8am UTC (best Colab window)
     # - cron: '*/10 14-16 * * *'  # Every 10min, 2pm–4pm UTC (midday window)
   workflow_dispatch:              # Manual trigger anytime
