@@ -2,7 +2,7 @@ name: CloudSurf Runner
 
 on:
   schedule:
-    - cron: '*/1 * * * *'     # Every minute
+    - cron: '*/5 * * * *'     # Every 5 minutes (better than every 1)
   workflow_dispatch:
 
 jobs:
@@ -15,25 +15,33 @@ jobs:
           CODESPACE="${{ vars.CLOUDSURF_CODESPACE_NAME }}"
           
           if [ -z "$CODESPACE" ]; then
-            echo "❌ No codespace name set! Add CLOUDSURF_CODESPACE_NAME to repo variables."
+            echo "❌ No codespace name set!"
             exit 1
           fi
 
           echo "🔍 Checking codespace: $CODESPACE"
           
-          # No --repo filter because codespace is in another repo
-          STATE=$(gh codespace list \
-            --json name,state \
-            -q '.[] | select(.name == "'$CODESPACE'") | .state' || echo "")
+          STATE=$(gh codespace list --json name,state -q '.[] | select(.name == "'$CODESPACE'") | .state' || echo "Not found")
+          echo "Current state: $STATE"
 
-          echo "Current state: ${STATE:-Not found}"
-          
           if [ "$STATE" = "Available" ]; then
-            echo "✅ Codespace is already running."
+            echo "✅ Already running."
           else
-            echo "🚀 Starting codespace..."
+            echo "🚀 Sending start command..."
             gh codespace code --codespace "$CODESPACE" --web > /dev/null 2>&1 || true
-            echo "✅ Start command sent!"
+            
+            echo "⏳ Waiting up to 60 seconds for it to start..."
+            for i in {1..12}; do
+              sleep 5
+              NEW_STATE=$(gh codespace list --json name,state -q '.[] | select(.name == "'$CODESPACE'") | .state' || echo "Not found")
+              echo "Status check $i/12: $NEW_STATE"
+              if [ "$NEW_STATE" = "Available" ]; then
+                echo "🎉 Codespace is now running!"
+                exit 0
+              fi
+            done
+            
+            echo "⚠️ Codespace is still not Available after waiting. It might still be starting."
           fi
         env:
           GH_TOKEN: ${{ secrets.CLOUDSURF_PAT }}
