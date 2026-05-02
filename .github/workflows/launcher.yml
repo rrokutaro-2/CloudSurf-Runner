@@ -1,0 +1,33 @@
+name: CloudSurf Runner
+
+on:
+  schedule:
+    - cron: '*/10 2-8 * * *'    # Every 10min, 2am–8am UTC (best Colab window)
+    - cron: '*/10 14-16 * * *'  # Every 10min, 2pm–4pm UTC (midday window)
+  workflow_dispatch:              # Manual trigger anytime
+
+jobs:
+  launch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start CloudSurf Codespace
+        run: |
+          CODESPACE="${{ vars.CLOUDSURF_CODESPACE_NAME }}"
+
+          if [ -z "$CODESPACE" ]; then
+            echo "❌ No codespace name set! Add CLOUDSURF_CODESPACE_NAME to repo variables."
+            exit 1
+          fi
+
+          STATE=$(gh codespace list --repo ${{ github.repository }} --json name,state -q --arg cs "$CODESPACE" '.[] | select(.name==$cs) | .state')
+          echo "Codespace: $CODESPACE | State: $STATE"
+
+          if [ "$STATE" = "Available" ]; then
+            echo "✓ Already running — nothing to do."
+          else
+            echo "Starting codespace..."
+            gh codespace start --codespace $CODESPACE
+            echo "✓ Started!"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
