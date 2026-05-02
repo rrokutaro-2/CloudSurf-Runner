@@ -2,7 +2,7 @@ name: CloudSurf Runner
 
 on:
   schedule:
-    - cron: '*/5 * * * *'     # Every 5 minutes (better than every 1)
+    - cron: '*/10 * * * *'     # Every 5 minutes (better than every 1)
   workflow_dispatch:
 
 jobs:
