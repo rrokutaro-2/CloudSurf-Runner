@@ -20,7 +20,7 @@ jobs:
           fi
           # ── Trick 1: official start command ──────────────────────────────
           echo "🚀 Trick 1: gh codespace start"
-          gh codespace start --codespace "$CODESPACE" 2>&1 || true
+          gh codespace start -c "$CODESPACE" 2>&1 || true
           STATE=$(check_state)
           echo "   State after start: $STATE"
           [ "$STATE" = "Available" ] && echo "🎉 Done (trick 1)!" && exit 0
